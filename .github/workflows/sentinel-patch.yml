@@ -22,8 +22,8 @@ jobs:
 
       - name: Install Trivy
         run: |
-          wget https://github.com/aquasecurity/trivy/releases/download/v0.43.1/trivy_0.43.1_Linux-64bit.deb
-          sudo dpkg -i trivy_0.43.1_Linux-64bit.deb
+           # Use the official installer script to get the latest stable version
+           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.49.1
 
       - name: Scan Image (Vulnerability Discovery)
         # We scan the base image and save it to a JSON file
