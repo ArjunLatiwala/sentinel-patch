@@ -16,6 +16,27 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+            - name: Generate Legacy Client View
+        # This creates the "Problem" report
+        run: python3 legacy_reporter.py
+
+      - name: Execution Autonomous Remediation
+        run: sed -i 's/node:14.15.0/node:20-alpine/g' Dockerfile
+
+      - name: Scan Phase 2 (Verification)
+        run: trivy image --format json --output trivy_post_patch.json node:20-alpine
+
+      - name: Execute Sentinel Engine
+        run: python3 sentinel_engine.py
+
+      - name: Upload Comparison Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: comparison-reports
+          path: |
+            LEGACY_CLIENT_DASHBOARD.html
+            SECURITY_AUDIT.html
+
       - name: Install Trivy
         run: |
           VERSION=$(curl --silent "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
@@ -50,7 +71,7 @@ jobs:
         with:
           commit-message: "[SENTINEL] Mitigate reachability path vulnerabilities"
           branch: sentinel-patch-fix
-          title: "🛡️ [SECURITY] Automated Base Image Hardening"
+          title: "[SECURITY] Automated Base Image Hardening"
           body: |
             ## Automated Security Remediation
             The Sentinel-Patch Reachability Engine has identified critical vulnerabilities in the `node:14.15.0` base image that are exploitable in the current runtime path.
@@ -76,3 +97,6 @@ jobs:
                ```
             
             *A detailed **HTML Audit Report** with full CVE mapping has been generated. You can download it from the **Artifacts** section of the associated CI run.*
+            - name: Scan Phase 1 (Baseline)
+        run: trivy image --format json --output trivy_pre_patch.json node:14.15.0
+
