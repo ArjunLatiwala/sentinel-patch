@@ -20,26 +20,23 @@ jobs:
         with:
           python-version: '3.9'
 
-      - name: Install Trivy
+      - name: Install Trivy (Binary Method)
         run: |
-          sudo apt-get update
-          sudo apt-get install -y wget apt-transport-https gnupg lsb-release
-          wget -qO - https://aquasecurity.github.io/trivy-repo/dabest.gpg | sudo apt-key add -
-          echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee -a /etc/apt/sources.list.d/trivy.list
-          sudo apt-get update
-          sudo apt-get install -y trivy
+          VERSION=$(curl --silent "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+          wget https://github.com/aquasecurity/trivy/releases/download/${VERSION}/trivy_${VERSION#v}_Linux-64bit.tar.gz
+          tar zxvf trivy_${VERSION#v}_Linux-64bit.tar.gz
+          sudo mv trivy /usr/local/bin
+          trivy --version
 
       - name: Scan Image (Vulnerability Discovery)
-        # We scan the node:14.15.0 image and save findings to a JSON file
         run: trivy image --format json --output trivy_report.json node:14.15.0
 
       - name: Execute Reachability Analysis
         id: engine
         run: python3 sentinel_engine.py
-        continue-on-error: true # We expect the script to exit with 10 (patch required)
+        continue-on-error: true
 
       - name: Autonomous Remediation (Sed Patch)
-        # This step only runs if the engine determines a patch is needed
         run: |
           sed -i 's/node:14.15.0/node:20-alpine/g' Dockerfile
           echo "PATCH_APPLIED=true" >> $GITHUB_ENV
@@ -50,5 +47,6 @@ jobs:
           git config --global user.name "Sentinel-Bot"
           git config --global user.email "sentinel-bot@internal.com"
           git add Dockerfile
-          git commit -m "[SENTINEL-AUTO-PATCH] Applied security hardening to Dockerfile (Reference: CVE-2023-44487)"
+          # Using --allow-empty in case the file was already patched to avoid errors
+          git commit --allow-empty -m "[SENTINEL-AUTO-PATCH] Applied security hardening to Dockerfile (Reference: CVE-2023-44487)"
           git push
