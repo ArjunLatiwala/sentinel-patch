@@ -1,0 +1,7 @@
+node_modules/
+*.log
+.env
+trivy_*.json
+SECURITY_AUDIT.html
+LEGACY_CLIENT_DASHBOARD.html
+.DS_Store

@@ -27,7 +27,7 @@ def generate_legacy_report():
         </style>
     </head>
     <body>
-        <h1>CLIENT LEGACY SCANNER - UNFILTERED DATA</h1>
+        <h1>Data Scanner</h1>
         <div class="warning">
             <strong>CRITICAL ERROR:</strong> {len(all_vulnerabilities)} vulnerabilities detected. 
             Alert fatigue detected. Manually triage required for all rows.
