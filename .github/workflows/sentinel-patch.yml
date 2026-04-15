@@ -26,7 +26,7 @@ jobs:
       - name: Scan Phase 1 (Baseline)
         run: trivy image --format json --output trivy_pre_patch.json node:14.15.0
 
-      - name: Execution: Autonomous Remediation
+      - name: Execution Autonomous Remediation
         run: |
           sed -i 's/node:14.15.0/node:20-alpine/g' Dockerfile
 
