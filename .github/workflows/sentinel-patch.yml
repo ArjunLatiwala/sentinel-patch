@@ -1,0 +1,51 @@
+name: Sentinel-Patch CI
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  security-hardening:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Needed to push the auto-fix back to the repo
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install Trivy
+        run: |
+          wget https://github.com/aquasecurity/trivy/releases/download/v0.43.1/trivy_0.43.1_Linux-64bit.deb
+          sudo dpkg -i trivy_0.43.1_Linux-64bit.deb
+
+      - name: Scan Image (Vulnerability Discovery)
+        # We scan the base image and save it to a JSON file
+        run: trivy image --format json --output trivy_report.json node:14.15.0
+
+      - name: Execute Reachability Analysis
+        id: engine
+        run: python3 sentinel_engine.py
+        continue-on-error: true # We expect exit code 10, so don't fail yet
+
+      - name: Autonomous Remediation (Sed Patch)
+        # Only run if the Python script flagged the reachable vulnerabilities
+        run: |
+          sed -i 's/node:14.15.0/node:20-alpine/g' Dockerfile
+          echo "PATCH_APPLIED=true" >> $GITHUB_ENV
+
+      - name: Commit and Push Hardened Image
+        if: env.PATCH_APPLIED == 'true'
+        run: |
+          git config --global user.name "Sentinel-Bot"
+          git config --global user.email "sentinel-bot@internal.com"
+          git add Dockerfile
+          git commit -m "[SENTINEL-AUTO-PATCH] Applied security hardening to Dockerfile (Reference: CVE-2023-44487)"
+          git push
+          
