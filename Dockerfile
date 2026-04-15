@@ -1,12 +1,22 @@
-# Project: Sentinel-Patch
-# Using an old, vulnerable image to trigger the engine
-FROM node:20-alpine
+# Project: Sentinel-Patch Enterprise Service
+# Vulnerable Base: node:14.15.0 (Triggers the Sentinel Engine)
+FROM node:14.15.0
 
-WORKDIR /app
+# Create app directory
+WORKDIR /usr/src/app
+
+# Install app dependencies
+# In a real project, we would copy package.json first to cache layers
+COPY package*.json ./
+RUN npm install --only=production
+
+# Bundle app source (The new enterprise structure)
 COPY . .
 
-# Simulate an app install
-RUN echo "Installing dependencies..."
+# Security Note: Application should run as non-root user in production
+# USER node 
 
-EXPOSE 3000
-CMD ["node", "index.js"]
+EXPOSE 8080
+
+# Entry point for the service
+CMD [ "node", "src/api/server.js" ]

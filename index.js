@@ -1,1 +1,0 @@
-console.log("Sentinel-Patch: Application is running...");
