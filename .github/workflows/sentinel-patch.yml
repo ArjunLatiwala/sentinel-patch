@@ -49,7 +49,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "[SENTINEL-AUTO-PATCH] Critical reachability path mitigated"
           branch: sentinel-security-fix
-          title: "🛡️ [SECURITY] Automated Patch: Node Runtime Hardening"
+          title: "[SECURITY] Automated Patch: Node Runtime Hardening"
           body: |
             ## Sentinel-Patch Autonomous Remediation
             The Reachability Engine has identified 3 critical exploits in the current `node:14.15.0` base image.
