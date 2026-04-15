@@ -46,20 +46,33 @@ jobs:
         run: cat TSB_SUMMARY.md >> $GITHUB_STEP_SUMMARY
 
       - name: Create Patch PR
-        uses: peter-evans/create-pull-request@v5
+        uses: peter-evans/create-pull-request@v7
         with:
           commit-message: "[SENTINEL] Mitigate reachability path vulnerabilities"
           branch: sentinel-patch-fix
-          title: "[SECURITY] Automated Base Image Hardening"
+          title: "🛡️ [SECURITY] Automated Base Image Hardening"
           body: |
-            ## Technical Summary
-            The Sentinel-Patch engine has detected exploitable vulnerabilities in the `node:14.15.0` base image.
+            ## Automated Security Remediation
+            The Sentinel-Patch Reachability Engine has identified critical vulnerabilities in the `node:14.15.0` base image that are exploitable in the current runtime path.
             
-            ### Developer Action Required:
-            To apply this fix locally, run:
-            ```bash
-            git fetch origin sentinel-patch-fix
-            git checkout sentinel-patch-fix
-            ```
+            ### Analysis Summary
+            - **Noise Reduction:** Successfully filtered dormant vulnerabilities.
+            - **Action Taken:** Migrated Dockerfile base to `node:20-alpine`.
             
-            *Note: A detailed HTML Audit Report has been attached to the CI Run artifacts for compliance review.*
+            ### Developer Integration Workflow
+            To pull these fixes into your local environment for review:
+            
+            1. **Fetch the remediation branch:**
+               ```bash
+               git fetch origin sentinel-patch-fix
+               ```
+            2. **Review the changes:**
+               ```bash
+               git diff main origin/sentinel-patch-fix
+               ```
+            3. **Merge the patch into your work:**
+               ```bash
+               git merge origin/sentinel-patch-fix
+               ```
+            
+            *A detailed **HTML Audit Report** with full CVE mapping has been generated. You can download it from the **Artifacts** section of the associated CI run.*
