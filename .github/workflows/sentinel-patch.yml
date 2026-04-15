@@ -33,7 +33,7 @@ jobs:
         run: python3 legacy_reporter.py
 
       # 4. REMEDIATION
-      - name: Execution: Autonomous Remediation
+      - name: Execution Autonomous Remediation
         run: sed -i 's/node:14.15.0/node:20-alpine/g' Dockerfile
 
       # 5. VERIFICATION SCAN (The Solution)
