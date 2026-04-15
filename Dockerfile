@@ -1,6 +1,6 @@
 # Project: Sentinel-Patch Enterprise Service
-# Vulnerable Base: node:14.15.0 (Triggers the Sentinel Engine)
-FROM node:14.15.0
+# Vulnerable Base: node:20-alpine (Triggers the Sentinel Engine)
+FROM node:20-alpine
 
 # Create app directory
 WORKDIR /usr/src/app
