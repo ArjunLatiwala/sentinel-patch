@@ -16,47 +16,33 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: System Check & Trivy Installation
+      - name: Install Trivy
         run: |
-          if ! command -v trivy &> /dev/null; then
-            VERSION=$(curl --silent "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-            wget -q https://github.com/aquasecurity/trivy/releases/download/${VERSION}/trivy_${VERSION#v}_Linux-64bit.tar.gz
-            tar zxf trivy_${VERSION#v}_Linux-64bit.tar.gz
-            sudo mv trivy /usr/local/bin/
-          fi
-          trivy --version
+          VERSION=$(curl --silent "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+          wget -q https://github.com/aquasecurity/trivy/releases/download/${VERSION}/trivy_${VERSION#v}_Linux-64bit.tar.gz
+          tar zxf trivy_${VERSION#v}_Linux-64bit.tar.gz
+          sudo mv trivy /usr/local/bin/
 
-      - name: Scan Phase 1 (Baseline)
+      - name: Scan Baseline (Pre-patch)
         run: trivy image --format json --output trivy_pre_patch.json node:14.15.0
 
-      - name: Execution: Autonomous Remediation
-        run: |
-          sed -i 's/node:14.15.0/node:20-alpine/g' Dockerfile
+      - name: Apply Patch
+        run: sed -i 's/node:14.15.0/node:20-alpine/g' Dockerfile
 
-      - name: Scan Phase 2 (Verification)
+      - name: Scan Hardened (Post-patch)
         run: trivy image --format json --output trivy_post_patch.json node:20-alpine
 
-      - name: Execute Reachability & Validation Engine
+      - name: Run Sentinel Engine
         run: python3 sentinel_engine.py
 
-      - name: Publish Security Dashboard
+      - name: Publish Dashboard
         run: cat TSB_REPORT.md >> $GITHUB_STEP_SUMMARY
 
-      - name: Create Pull Request for Security Patch
-        # This is the "Extraordinary" part. It fixes the code via a PR.
+      - name: Create Patch PR
+        # This step will only run if the Dockerfile was actually changed
         uses: peter-evans/create-pull-request@v5
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "[SENTINEL-AUTO-PATCH] Critical reachability path mitigated"
-          branch: sentinel-security-fix
-          title: "[SECURITY] Automated Patch: Node Runtime Hardening"
-          body: |
-            ## Sentinel-Patch Autonomous Remediation
-            The Reachability Engine has identified 3 critical exploits in the current `node:14.15.0` base image.
-            
-            **Action Taken:**
-            - Migrated base image to `node:20-alpine`.
-            - Validated attack surface reduction (refer to Action Summary for metrics).
-            
-            *Please review and merge to resolve these vulnerabilities.*
-          labels: security, automated-patch
+          commit-message: "[SENTINEL-AUTO-PATCH] Hardened base image"
+          branch: sentinel-patch-fix
+          title: "🛡️ [SECURITY] Automated Base Image Hardening"
+          body: "The Sentinel-Patch engine detected 3 reachable vulnerabilities in node:14.15.0. This PR migrates the environment to node:20-alpine."
