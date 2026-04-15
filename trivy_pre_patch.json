@@ -1,0 +1,14 @@
+{
+  "Results": [
+    {
+      "Vulnerabilities": [
+        {"VulnerabilityID": "CVE-2023-44487"},
+        {"VulnerabilityID": "CVE-2023-23914"},
+        {"VulnerabilityID": "CVE-2023-23916"},
+        {"VulnerabilityID": "CVE-2022-40152"},
+        {"VulnerabilityID": "CVE-OTHER-1"},
+        {"VulnerabilityID": "CVE-OTHER-2"}
+      ]
+    }
+  ]
+}
