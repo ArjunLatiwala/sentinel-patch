@@ -8,7 +8,7 @@ Sentinel-Patch is an intelligent DevSecOps middleware designed to bridge the gap
 
 ## 🏗️ Project Architecture
 The repository simulates a "Client API Gateway" with a standard enterprise structure:
-- `src/`: Core Microservice logic (Node.js/Express).
+<!-- - `src/`: Core Microservice logic (Node.js/Express). -->
 - `infra/`: Infrastructure-as-Code (Terraform & Kubernetes manifests).
 - `security/`: Custom automation engines for vulnerability triaging.
 
