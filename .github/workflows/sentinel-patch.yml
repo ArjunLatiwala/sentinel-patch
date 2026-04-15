@@ -9,7 +9,7 @@ jobs:
   security-hardening:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Needed to push the auto-fix back to the repo
+      contents: write
 
     steps:
       - name: Checkout Code
@@ -22,20 +22,24 @@ jobs:
 
       - name: Install Trivy
         run: |
-           # Use the official installer script to get the latest stable version
-           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.49.1
+          sudo apt-get update
+          sudo apt-get install -y wget apt-transport-https gnupg lsb-release
+          wget -qO - https://aquasecurity.github.io/trivy-repo/dabest.gpg | sudo apt-key add -
+          echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee -a /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update
+          sudo apt-get install -y trivy
 
       - name: Scan Image (Vulnerability Discovery)
-        # We scan the base image and save it to a JSON file
+        # We scan the node:14.15.0 image and save findings to a JSON file
         run: trivy image --format json --output trivy_report.json node:14.15.0
 
       - name: Execute Reachability Analysis
         id: engine
         run: python3 sentinel_engine.py
-        continue-on-error: true # We expect exit code 10, so don't fail yet
+        continue-on-error: true # We expect the script to exit with 10 (patch required)
 
       - name: Autonomous Remediation (Sed Patch)
-        # Only run if the Python script flagged the reachable vulnerabilities
+        # This step only runs if the engine determines a patch is needed
         run: |
           sed -i 's/node:14.15.0/node:20-alpine/g' Dockerfile
           echo "PATCH_APPLIED=true" >> $GITHUB_ENV
@@ -48,4 +52,3 @@ jobs:
           git add Dockerfile
           git commit -m "[SENTINEL-AUTO-PATCH] Applied security hardening to Dockerfile (Reference: CVE-2023-44487)"
           git push
-          
